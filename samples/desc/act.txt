@@ -1,0 +1,40 @@
+# col_name            	data_type           	comment             
+	 	 
+ts                  	string              	UNIX timestamp      
+sid                 	string              	None                
+v                   	map<string,string>  	None                
+	 	 
+# Partition Information	 	 
+# col_name            	data_type           	comment             
+	 	 
+dt                  	string              	None                
+type                	string              	None                
+	 	 
+# Detailed Table Information	 	 
+Database:           	default             	 
+Owner:              	hive
+CreateTime:         	Sat Aug 24 15:38:45 JST 2013	 
+LastAccessTime:     	UNKNOWN             	 
+Protect Mode:       	None                	 
+Retention:          	0                   	 
+Location:           	hdfs://localhost:8020/user/hive/warehouse/act	 
+Table Type:         	MANAGED_TABLE       	 
+Table Parameters:	 	 
+	numFiles            	4                   
+	numPartitions       	4                   
+	numRows             	0                   
+	rawDataSize         	0                   
+	totalSize           	235354              
+	transient_lastDdlTime	1377327116          
+	 	 
+# Storage Information	 	 
+SerDe Library:      	org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe	 
+InputFormat:        	org.apache.hadoop.mapred.TextInputFormat	 
+OutputFormat:       	org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat	 
+Compressed:         	No                  	 
+Num Buckets:        	-1                  	 
+Bucket Columns:     	[]                  	 
+Sort Columns:       	[]                  	 
+Storage Desc Params:	 	 
+	field.delim         	\t                  
+	serialization.format	\t                  

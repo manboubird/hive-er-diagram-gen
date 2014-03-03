@@ -1,0 +1,17 @@
+.DS_Store
+*.class
+*.log
+*.swp
+
+# sbt specific
+.cache/
+.history/
+.lib/
+dist/*
+target/
+project/
+
+# IDE specific
+.idea/
+.idea_modules/
+*.iml
