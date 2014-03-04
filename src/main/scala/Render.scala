@@ -8,9 +8,10 @@ import scala.collection.mutable.HashSet
 class Render {
 
   val DIAGRAM_HEADER="""digraph R {
-               |  rankdir=LR
-               |  node [style=rounded]
-               |""".stripMargin
+                       |  rankdir=LR
+                       |  graph[page="11.7,16.5",size="11.7,16.5",center=true]
+                       |  node [style=rounded]
+                       |""".stripMargin
   val DIAGRAM_FOOTER="""}
                |""".stripMargin
   val SUB_GRAPH_HEADER="""subgraph "cluster%s" {
