@@ -2,6 +2,8 @@
 *.class
 *.log
 *.swp
+*.dot
+*.png
 
 # sbt specific
 .cache/

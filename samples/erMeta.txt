@@ -1,7 +1,8 @@
 # master table relations
-profile:uid,uid_map
-uid_map:sid,act,excite_log
+profile.uid,uid_map
+uid_map.sid,act,excite_log
 # sub group
 Dimension tables,profile
 Fact tables,act,excite_log
 Bridge tables,uid_map
+
