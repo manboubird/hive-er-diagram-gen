@@ -9,7 +9,7 @@ class Render {
 
   val DIAGRAM_HEADER="""digraph R {
                        |  rankdir=LR
-                       |  graph[page="11.7,16.5",size="11.7,16.5",center=true]
+                       |  %s
                        |  node [style=rounded]
                        |""".stripMargin
   val DIAGRAM_FOOTER="""}
@@ -20,24 +20,31 @@ class Render {
   val SUB_GRAPH_FOOTER=
     """}
       |""".stripMargin
-  val TBL_HEADER= """"%s" [shape=record,label=<
-                    |<table border='0' align='center' cellspacing='0.5' cellpadding='0' width='12'>
-                    |  <tr><td align='center' valign='bottom' width='10'>
-                    |    <font face='Arial Bold' point-size='11'>%s %s</font>
-                    |  </td></tr>
-                    |</table>
-                    ||
-                    |<table border='0' align='left' cellspacing='2' cellpadding='0' width='12'>
-                    |""".stripMargin
-  val TBL_HOOTER="""</table>
-                   |>];
-                   |""".stripMargin
+  val TBL_ALL=
+    """%s
+      |%s
+      ||
+      |<table border='0' align='left' cellspacing='2' cellpadding='0' width='12'>
+      |%s
+      |</table>
+      |>];
+    """.stripMargin
+  val TBL_HEADER=""""%s" [shape=record,label=<
+                   | <table border='0' align='center' cellspacing='0.5' cellpadding='0' width='12'>
+                   |   <tr><td align='center' valign='bottom' width='10'><font face='Arial Bold' point-size='11'>%s %s</font></td></tr>
+                   |   </table>""".stripMargin
+  val TBL_VIEW_CONTENT = """||
+                           | <table border='0' cellspacing='0.5' cellpadding='0' width='12'>
+                           |  <tr><td valign='bottom' width='10'>
+                           |    <font face='Arial' point-size='11'>View selects: %s</font>
+                           |  </td></tr>
+                           |</table>""".stripMargin
   val TR_CONTENT=
     """  <tr><td align='left' width='10'>%s<font face='Arial Italic' color='grey60'>%s%s</font></td></tr>
       |""".stripMargin
   val RELATIONS_FOREIGN_KEY_CONTENT=""" {%s} -> %s;
                   |""".stripMargin
-  val RELATIONS_VIEW_REFERRERED_TABLE_CONTENT=""" %s -> {%s} [taillabel="referrers",color="red", fontsize="8"];
+  val RELATIONS_VIEW_REFERRERED_TABLE_CONTENT=""" %s -> {%s} [headlabel="ref: %s", color="red", fontsize="8"];
                           |""".stripMargin
 
   /**
@@ -49,31 +56,13 @@ class Render {
    */
   def render(tables: List[Table], erMeta:ErMeta):String = {
     val sb = new StringBuilder()
-    sb.append(DIAGRAM_HEADER)
+    val opts = if(Config.isPrintableSetting) """  graph[page="11.7,16.5",size="11.7,16.5",center=true]""" else ""
+    sb.append(DIAGRAM_HEADER.format(opts))
     sb.append(getTables(tables, erMeta))
     sb.append(getMasterTableRelations(erMeta.masterTableRelations))
     sb.append(getViewReferreredTableRelations(tables))
     sb.append(DIAGRAM_FOOTER)
     sb.toString()
-  }
-
-  private def getTables(tables:List[Table], erMeta:ErMeta):String = {
-    val sb = new StringBuilder()
-    val appendedTableNameSet = new HashSet[String]()
-
-    // TODO Refactoring
-    for((g, i) <- erMeta.regexSubGroup.view.zipWithIndex) {
-      val filtered = tables.filter( t => t.name.matches(g.regex.r.toString()))
-      sb.append(getSubGroups(filtered, g.label, "-regex-%d".format(i)))
-      val s = filtered.map(_.name).toSet
-      appendedTableNameSet ++= s
-    }
-    val t:(String, Set[String]) = getSubGroups(tables, erMeta.subGroup)
-    sb.append(t._1)
-    appendedTableNameSet ++= t._2
-
-    sb.append(getTableContent(tables.filter(table => appendedTableNameSet.contains(table.name) == false)))
-    sb.toString
   }
 
   private def getSubGroups(tables:List[Table], subGroup:List[SubGroup]):(String, Set[String]) = {
@@ -97,25 +86,52 @@ class Render {
     sb.toString
   }
 
+  private def getTables(tables:List[Table], erMeta:ErMeta):String = {
+    val sb = new StringBuilder()
+    val appendedTableNameSet = new HashSet[String]()
+
+    // TODO Refactoring
+    for((g, i) <- erMeta.regexSubGroup.view.zipWithIndex) {
+      val filtered = tables.filter( t => t.name.matches(g.regex.r.toString()))
+      sb.append(getSubGroups(filtered, g.label, "-regex-%d".format(i)))
+      appendedTableNameSet ++= filtered.map(_.name).toSet
+    }
+    // TODO filter tables by appendedTableNameSet or admit duplicate table outputs?
+    val t:(String, Set[String]) = getSubGroups(tables, erMeta.subGroup)
+    sb.append(t._1)
+    appendedTableNameSet ++= t._2
+
+    // output rest
+    sb.append(getTableContent(tables.filter(table => appendedTableNameSet.contains(table.name) == false)))
+    sb.toString
+  }
+
   private def toOneLine(s:String):String = s.replaceAll(""" *\n""","")
 
   private def replace_special_chars(s:String):String = s.replaceAll("<","&lt;").replaceAll(">","&gt;")
 
   private def getTableContent(tables:List[Table]):String = tables.map{ t =>
     val sb = new StringBuilder()
-    val tableExt:String = if (t.isView) " (V)" else ""
-    sb.append("\n").append(TBL_HEADER.format(t.name, t.name, tableExt))
-    t.columns.map{ c =>
+
+    val nameExt:String = if (t.isView) " (V)" else ""
+    val name = TBL_HEADER.format(t.name, t.name, nameExt)
+    val desc = if(t.isView()) TBL_VIEW_CONTENT.format(t.getViewReferreredDistinctTables().mkString(", ")) else ""
+    val rows = t.columns.map{ c =>
       val columnExt:String = if (c.isPartition) " (P)" else ""
-      sb.append(TR_CONTENT.format(c.name, replace_special_chars(c.columnType), columnExt))
-    }
-    sb.append(TBL_HOOTER)
+      TR_CONTENT.format(c.name, replace_special_chars(c.columnType), columnExt)
+    }.mkString("")
+    sb.append(TBL_ALL.format(name, desc, rows))
+
     toOneLine(sb.toString())
   }.mkString("\n\n")
 
 
   private def getMasterTableRelations(relations:List[MasterTableRelation]):String
     = relations.map{ r => RELATIONS_FOREIGN_KEY_CONTENT.format(r.tables.map(_.table).mkString(" "), r.masterTable.table)}.mkString("\n")
-  private def getViewReferreredTableRelations(tables:List[Table]):String
-    = tables.filter(_.isView).map{t => RELATIONS_VIEW_REFERRERED_TABLE_CONTENT.format(t.name, t.getViewReferreredTables.mkString(" "))}.mkString("\n")
+  private def getViewReferreredTableRelations(tables:List[Table]):String =
+    tables.filter(_.isView).map{t =>
+      val heads = t.getViewReferreredDistinctTables
+      RELATIONS_VIEW_REFERRERED_TABLE_CONTENT.format(t.name, heads.mkString(" "), t.name)
+    }.mkString("\n")
+
 }
