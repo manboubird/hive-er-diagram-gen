@@ -1,0 +1,11 @@
+# master table relations
+profile.uid,uid_map
+uid_map.sid,act,excite_log
+act.sid,demotable
+excite_log.sid,demotable
+# sub group
+Dimension tables,profile
+Fact tables,act,excite_log
+Bridge tables,uid_map
+Redshift Tables,demotable
+

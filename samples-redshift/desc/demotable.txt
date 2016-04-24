@@ -1,0 +1,5 @@
+# col_name            	data_type           	comment             
+	 	 
+one                 	integer              	None                
+	 	 
+# Detailed Table Information	 	 

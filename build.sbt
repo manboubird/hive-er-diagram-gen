@@ -1,6 +1,6 @@
-import AssemblyKeys._
-
-assemblySettings
+// import AssemblyKeys._
+//
+// assemblySettings
 
 name := "hive-er-diagram-gen"
 
