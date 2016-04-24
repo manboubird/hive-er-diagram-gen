@@ -11,14 +11,16 @@ Quick run
 
 Run with standalone jar
 
-`sbt assembly`
-`java -jar ./target/scala-2.10/hive-er-diagram-gen-assembly-0.0.1.jar ./samples/desc ./samples/erMeta.txt ./target/er.dot`
+```
+sbt assembly
+java -jar ./target/scala-2.10/hive-er-diagram-gen-assembly-0.0.1.jar ./samples/desc ./samples/erMeta.txt ./target/er.dot
+```
 
-Convert to PNG from dot file
+Convert to PNG from dot file:
 
 `dot -Tpng ./target/er.dot > ./target/er.png & open ./target/er.png`
 
-To generate input files
+To generate input files:
 
 `hive -e "show tables" | xargs -I '{}' sh -c 'hive -e "desc formatted $1" > "./target/desc/$1.txt"' -- {}`
 
@@ -29,23 +31,26 @@ See also /samples/desc.
 
 **Master table relations record format**
 
-`{MASTER_TABLE_NAME}:{MASTER_TABLE_COLUMN_NAME},<{TABLE_NAME}+>`
+`{MASTER_TABLE_NAME}.{MASTER_TABLE_COLUMN_NAME},<{TABLE_NAME}+>`
 
 ex:
-` # master table relations`
-`profile:uid,uid_map`
-`uid_map:sid,act,excite_log`
-
+```
+# master table relations
+profile.uid,uid_map
+uid_map.sid,act,excite_log
+```
 
 **Sub group record format**
 
 `{SUB_GROUP_LABEL},<{TABLE_NAME}+>`
 
 ex:
-` # sub group`
-`Dimension tables,profile`
-`Fact tables,act,excite_log`
-`Bridge tables,uid_map`
+```
+# sub group
+Dimension tables,profile
+Fact tables,act,excite_log
+Bridge tables,uid_map
+```
 
 ## Dependencies
 

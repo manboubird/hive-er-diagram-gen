@@ -21,8 +21,11 @@ class Tool {
   def generate(descFileDir:File, erMetaFile:File):String
     = r.render(parseTableFiles(descFileDir), parseErMetaFile(erMetaFile))
 
-  private def parseTableFiles(dir:File):List[Table] = dir.listFiles.map( f => tp.parse(getTableName(f), readIntoList(f))).toList
+  private def parseTableFiles(dir:File):List[Table] = dir.listFiles.filter(_.getPath.endsWith(".txt")).map{ f =>
+        System.out.println(s"Reading file: $f")
+        tp.parse(getTableName(f), readIntoList(f))
+  }.toList
   private def parseErMetaFile(f:File):ErMeta = emp.parse(readIntoList(f))
   private def getTableName(f:File):String = f.getName.replaceFirst("""\..+$""","")
-  private def readIntoList(f:File):List[String] = Source.fromFile(f).getLines.toList
+  private def readIntoList(f:File):List[String] = Source.fromFile(f)(scala.io.Codec.ISO8859).getLines.toList
 }
